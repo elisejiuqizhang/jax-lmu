@@ -1,8 +1,9 @@
 # jax-lmu
 Legendre Memory Unit (LMU) implementation using Jax 
 
-## Environment
-Python version is 3.9.15. After creating the corresponding virtual environment, I ran the following commands to set up the environment:
+## Environment Requirements
+Python version is 3.9.15, and I'm setting up my environment in Conda. 
+After creating the corresponding virtual environment, I ran the following commands to install required packages:
 
     conda install cudatoolkit=11.3
     conda install cudnn=8.2.1
