@@ -20,3 +20,5 @@ My GPU is NVIDIA GeForce RTX 3090 (can be queried in commandline with `nvidia-sm
 MNIST dataset will be loaded from PyTorch, since the jax library doesn't include any dataloading feature. Run the following command to be able to use the Jupyter Notebooks for experiments on MNIST.
 
     pip install torch torchvision
+    pip install scikit-learn
+    pip install tqdm
