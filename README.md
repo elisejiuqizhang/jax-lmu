@@ -22,3 +22,4 @@ MNIST dataset will be loaded from PyTorch, since the jax library doesn't include
     pip install torch torchvision
     pip install scikit-learn==1.1.3
     pip install tqdm==4.64.1
+    pip install ipywidgets
