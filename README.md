@@ -1,5 +1,5 @@
 # jax-lmu
-Legendre Memory Unit (LMU) implementation using Jax 
+Legendre Memory Unit (LMU) implementation using Jax (work in progress!)
 
 ## Environment Setup
 
