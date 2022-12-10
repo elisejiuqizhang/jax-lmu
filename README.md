@@ -17,9 +17,9 @@ My GPU is NVIDIA GeForce RTX 3090 (can be queried in commandline with `nvidia-sm
 
 ### Experiments on MNIST
 
-MNIST dataset will be loaded from Tensorflow. I ran the following command for the experiments on MNIST.
+MNIST dataset will be loaded from PyTorch. I ran the following command to install additional requirements for the experiments on MNIST.
 
-    pip install tensorflow_datasets==4.7.0
+    pip install torch torchvision
     pip install scikit-learn==1.1.3
     pip install tqdm==4.64.1
     pip install ipywidgets
