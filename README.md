@@ -11,7 +11,7 @@ Another paper are [parallelizing LMU training](https://arxiv.org/abs/2102.11417)
 
 ## Environment Setup
 
-My GPU is NVIDIA GeForce RTX 3090 and CUDA version 11.5.
+Single GPU: NVIDIA GeForce RTX 3090, CUDA version 11.5.
 
 ### Minimum Requirements
 
