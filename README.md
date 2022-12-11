@@ -5,7 +5,7 @@ Original paper: [Legendre Memory Units: Continuous-Time Representation in Recurr
 
 Repo of the orginal paper used [Keras](https://github.com/nengo/keras-lmu);
 
-Another paper are [parallelizing LMU training](https://arxiv.org/abs/2102.11417) and its [LMU PyTorch implementation](https://github.com/hrshtv/pytorch-lmu) (which is mostly what I am basing my adaptation on).
+Another paper is [parallelizing LMU training](https://arxiv.org/abs/2102.11417) and its [LMU PyTorch implementation](https://github.com/hrshtv/pytorch-lmu) (which is mostly what I am basing my adaptation on).
 
 
 
