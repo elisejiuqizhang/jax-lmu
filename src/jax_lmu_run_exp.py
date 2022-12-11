@@ -3,8 +3,6 @@ sys.path.append('/usr/local/data/elisejzh/Projects/Mine/jax-lmu')
 
 from src.jax_lmu import *
 
-from tqdm.notebook import tqdm
-
 import tensorflow_datasets as tfds 
 
 import optax
