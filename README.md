@@ -20,3 +20,4 @@ My GPU is NVIDIA GeForce RTX 3090 (can be queried in commandline with `nvidia-sm
 MNIST dataset will be loaded from TensorFlow. I ran the following command to install additional requirements for the experiments on MNIST.
 
     pip install tensorflow tensorflow_datasets
+    pip install tqdm
