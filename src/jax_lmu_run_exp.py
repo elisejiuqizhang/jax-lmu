@@ -6,6 +6,10 @@ from src.jax_lmu import *
 import tensorflow_datasets as tfds 
 
 import optax
+
+import tensorflow_datasets as tfds 
+
+import optax
 from flax.training import train_state
 
 
@@ -31,18 +35,27 @@ def get_datasets():
     ds_builder.download_and_prepare()
     train_ds = tfds.as_numpy(ds_builder.as_dataset(split='train', batch_size=-1))
     val_ds = tfds.as_numpy(ds_builder.as_dataset(split='test', batch_size=-1))
+    ds_builder = tfds.builder('mnist')
+    ds_builder.download_and_prepare()
+    train_ds = tfds.as_numpy(ds_builder.as_dataset(split='train', batch_size=-1))
+    val_ds = tfds.as_numpy(ds_builder.as_dataset(split='test', batch_size=-1))
 
 
     train_ds['image'] = jnp.float32(train_ds['image'])
     val_ds['image'] = jnp.float32(val_ds['image'])
+    train_ds['image'] = jnp.float32(train_ds['image'])
+    val_ds['image'] = jnp.float32(val_ds['image'])
 
+    return train_ds, val_ds
     return train_ds, val_ds
 
 
 
 train_ds, val_ds = get_datasets()
+train_ds, val_ds = get_datasets()
 
 
+#---------------------- Classifier for MNIST ----------------------#
 #---------------------- Classifier for MNIST ----------------------#
 class Model(nn.Module):
     input_size: int
@@ -82,6 +95,15 @@ def compute_metrics(*, logits, labels):
 
 lr=1e-2
 
+def create_train_state(rng, learning_rate=lr):
+    model = Model(
+            input_size  = N_x,
+            output_size = N_c,
+            hidden_size = N_h, 
+            memory_size = N_m, 
+            theta = THETA
+        )
+    params = model.init(rng, jnp.ones((N_b, N_t, N_x)))['params']
 def create_train_state(rng, learning_rate=lr):
     model = Model(
             input_size  = N_x,
