@@ -2,18 +2,12 @@ import sys
 sys.path.append('/usr/local/data/elisejzh/Projects/Mine/jax-lmu')
 
 from src.jax_lmu import *
-from flax.training import train_state
 
-from tqdm.notebook import tqdm
-
-import torch
-from torch.utils import data
-from torch.utils.data import Dataset, DataLoader
-
-from torchvision import datasets, transforms
-from torchvision.datasets import MNIST
+import tensorflow_datasets as tfds 
 
 import optax
+from flax.training import train_state
+
 
 #---------------------- Hyperparameters ----------------------#
 
@@ -27,39 +21,29 @@ N_b = 100 # batch size
 N_epochs = 10
 
 
-#---------------------- Load pMNIST ----------------------#
-
-class psMNIST(Dataset):
-    """ Dataset that defines the psMNIST dataset, given the MNIST data and a fixed permutation """
-
-    def __init__(self, mnist, perm):
-        self.mnist = mnist # also a torch.data.Dataset object
-        self.perm  = perm # file path to the permutation
-
-    def __len__(self):
-        return len(self.mnist)
-
-    def __getitem__(self, idx):
-        img, label = self.mnist[idx]
-        unrolled = img.reshape(-1)
-        permuted = unrolled[self.perm]
-        permuted = permuted.reshape(-1, 1)
-        return permuted, label
+#---------------------- Load MNIST ----------------------#
 
 
-transform = transforms.ToTensor()
-mnist_train = datasets.MNIST("../data", train = True, download = True, transform = transform)
-mnist_val   = datasets.MNIST("../data", train = False, download = True, transform = transform)
+def get_datasets():
+    """Load MNIST train and test datasets into memory."""
 
-perm = torch.load("./mnist_exp/permutation.pt").long() # created using torch.randperm(784)
-ds_train = psMNIST(mnist_train, perm)
-ds_val   = psMNIST(mnist_val, perm) 
-
-dl_train = DataLoader(ds_train, batch_size = N_b, shuffle = True, num_workers = 2)
-dl_val   = DataLoader(ds_val, batch_size = N_b, shuffle = True, num_workers = 2)
+    ds_builder = tfds.builder('mnist')
+    ds_builder.download_and_prepare()
+    train_ds = tfds.as_numpy(ds_builder.as_dataset(split='train', batch_size=-1))
+    val_ds = tfds.as_numpy(ds_builder.as_dataset(split='test', batch_size=-1))
 
 
-#---------------------- Classifier for pMNIST ----------------------#
+    train_ds['image'] = jnp.float32(train_ds['image'])
+    val_ds['image'] = jnp.float32(val_ds['image'])
+
+    return train_ds, val_ds
+
+
+
+train_ds, val_ds = get_datasets()
+
+
+#---------------------- Classifier for MNIST ----------------------#
 class Model(nn.Module):
     input_size: int
     output_size: int
@@ -77,17 +61,6 @@ class Model(nn.Module):
         output = self.classifier(h_n)
         return output # [batch_size, output_size]
 
-model = Model(
-            input_size  = N_x,
-            output_size = N_c,
-            hidden_size = N_h, 
-            memory_size = N_m, 
-            theta = THETA
-        )
-
-#---------------------- Optimizer ----------------------#
-learning_rate=1e-3
-optimizer=optax.adam(learning_rate)
 
 #---------------------- Loss & Metrics ----------------------#
 """Following the Flax example: https://flax.readthedocs.io/en/latest/getting_started.html"""
@@ -105,59 +78,93 @@ def compute_metrics(*, logits, labels):
   }
   return metrics
 
-#---------------------- Training ----------------------#
+#---------------------- Utility Functions for Training ----------------------#
 
-def train(model, optimizer, dl_train, dl_val, num_epochs):
+lr=1e-2
 
-    @jit
-    def loss_fn(params, x, y):
-        logits = model.apply(params, x)
-        return cross_entropy_loss(logits=logits, labels=y)
-
-    @jit
-    def update(params, x, y, state):
-
-        l, grads=value_and_grad(loss_fn)(params, x, y)
-        updates, state=optimizer.update(grads, state)
-        params=optax.apply_updates(params, updates)
-        return l, params, state
-
-    # Model initialization (hmmm this really takes quite long)
-    params = model.init(random.PRNGKey(0), jnp.empty((1, N_t, N_x))) # initialize model parameters by passing a template input
-    state = optimizer.init(params)
+def create_train_state(rng, learning_rate=lr):
+    model = Model(
+            input_size  = N_x,
+            output_size = N_c,
+            hidden_size = N_h, 
+            memory_size = N_m, 
+            theta = THETA
+        )
+    params = model.init(rng, jnp.ones((N_b, N_t, N_x)))['params']
     print("Model initialized.")
 
-    # Training loop
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch+1} of {num_epochs}")
-        for batch in tqdm(dl_train):
-            x, y=batch
+    optimizer = optax.adam(learning_rate)
+    return train_state.TrainState.create(apply_fn=model.apply, params=params, tx=optimizer)
 
-            # convert to jnp arrays
-            x=x.detach().cpu().numpy()
-            y=y.detach().cpu().numpy()
-            x=jnp.array(x)
-            y=jnp.array(y)
 
-            loss, params, state = update(params, x, y, state)
-        print(f"Training loss: {loss}")
 
-        # Validation loop
-        for batch in tqdm(dl_val):
+@jit
+def train_step(state, batch):
+    def loss_fn(params):
+        logits = state.apply_fn({'params': params}, batch['image'])
+        loss = cross_entropy_loss(logits=logits, labels=batch['label'])
+        return loss
+    grad_fn = value_and_grad(loss_fn, has_aux=False)
+    loss, grads = grad_fn(state.params)
+    new_state = state.apply_gradients(grads=grads)
 
-            inputs, labels = batch
-            
-            # convert to jnp arrays
-            inputs = inputs.detach().cpu().numpy()
-            labels = labels.detach().cpu().numpy()
-            inputs=jnp.array(inputs)
-            labels=jnp.array(labels)
+    logits = new_state.apply_fn({'params': new_state.params}, batch['image'])
+    metrics = compute_metrics(logits=logits, labels=batch['label'])
 
-            logits = model.apply(params, inputs)
-            metrics = compute_metrics(logits=logits, labels=labels)
-            print(f"Validation loss: {metrics['loss']}")
-            print(f"Validation accuracy: {metrics['accuracy']}")
+    return new_state, metrics # ?? For some reason it will get stuck after this and won't return anything to train_epoch()
 
-    return params
+@jit
+def eval_step(state, batch):
+    logits = state.apply_fn({'params': state.params}, batch['image'])
+    return compute_metrics(logits=logits, labels=batch['label'])
 
-params = train(model, optimizer, dl_train, dl_val, N_epochs)
+
+def train_epoch(state, train_ds, epoch, rng, batch_size=N_b, input_size=N_x):
+
+    train_ds_size = len(train_ds['image'])
+    steps_per_epoch = train_ds_size // batch_size
+
+    perms = jax.random.permutation(rng, train_ds_size) # get a randomized index array
+    perms = perms[:steps_per_epoch * batch_size]  # skip incomplete batch
+    perms = perms.reshape((steps_per_epoch, batch_size)) # index array, where each row is a batch
+
+    batch_metrics = []
+    for perm in perms:
+        batch = {k: v[perm, ...] for k, v in train_ds.items()} # dict{'image': array, 'label': array}
+        batch['image']=batch['image'].reshape((batch_size, -1, input_size)) # reshape to the required input dimensions
+        state, metrics = train_step(state, batch)
+        batch_metrics.append(metrics)
+    
+    # compute mean of metrics across each batch in epoch.
+    batch_metrics_np = jax.device_get(batch_metrics)
+    epoch_metrics_np = {
+        k: np.mean([metrics[k] for metrics in batch_metrics_np])
+        for k in batch_metrics_np[0]} # jnp.mean does not work on lists
+
+    print('train epoch: %d, loss: %.4f, accuracy: %.2f' % (epoch, epoch_metrics_np['loss'], epoch_metrics_np['accuracy'] * 100))
+
+    return state
+
+
+def eval_model(state, test_ds):
+    metrics = eval_step(state, test_ds)
+    metrics = jax.device_get(metrics)
+    summary = jax.tree_util.tree_map(lambda x: x.item(), metrics) # map the function over all leaves in metrics
+    return summary['loss'], summary['accuracy']
+
+#---------------------- Training ----------------------#
+
+# Random seed
+rng = jax.random.PRNGKey(0)
+rng, init_rng = jax.random.split(rng)
+
+# Initialize model
+state=create_train_state(rng, learning_rate=lr)
+del init_rng
+
+for epoch in range(N_epochs):
+    # Use a separate PRNG key to permute image data during shuffling
+    rng, input_rng = jax.random.split(rng)
+    state = train_epoch(state, train_ds, epoch, input_rng)
+    test_loss, test_accuracy = eval_model(state, val_ds)
+    print(' test epoch: %d, loss: %.2f, accuracy: %.2f' % (epoch, test_loss, test_accuracy * 100))

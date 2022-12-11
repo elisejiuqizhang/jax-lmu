@@ -35,6 +35,33 @@ class LMUCell(nn.Module):
     init_zero: Callable = nn.initializers.constant(0.)
     init_xav_norm: Callable = nn.initializers.xavier_normal()
 
+    def setup(self):
+        """ Initialize the parameters 
+
+        Trainable parameters:
+            Encoding vectors:
+                e_x: [1, input_size]
+                e_h: [1, hidden_size]
+                e_m: [1, memory_size]
+            Kernel matrices:
+                W_x: [hidden_size, input_size]
+                W_h: [hidden_size, hidden_size]
+                W_m: [hidden_size, memory_size]
+
+        A and B are fixed state space matrices:
+            A: [memory_size, memory_size]?
+            B: [memory_size, 1]?
+        
+        """
+        self.e_x=self.param('e_x', self.init_lecun_uni, (1,self.input_size))
+        self.e_h=self.param('e_h', self.init_lecun_uni, (1,self.hidden_size))
+        self.e_m=self.param('e_m', self.init_zero, (1,self.memory_size))
+        self.W_x=self.param('W_x', self.init_xav_norm, (self.hidden_size,self.input_size))
+        self.W_h=self.param('W_h', self.init_xav_norm, (self.hidden_size,self.hidden_size))
+        self.W_m=self.param('W_m', self.init_xav_norm, (self.hidden_size,self.memory_size))
+        self.A, self.B = self.stateSpaceMatrices(self.memory_size, self.theta)
+        
+
     @staticmethod
     def initialize_state(batch_size, hidden_size, memory_size):
         return jnp.zeros((batch_size, hidden_size)), jnp.zeros((batch_size, memory_size))
@@ -50,51 +77,30 @@ class LMUCell(nn.Module):
                 h: [batch_size, hidden_size]
                 m: [batch_size, memory_size]
 
-        Trainable parameters:
-            Encoding vectors:
-                e_x: [1, input_size]
-                e_h: [1, hidden_size]
-                e_m: [1, memory_size]
-            Kernel matrices:
-                W_x: [hidden_size, input_size]
-                W_h: [hidden_size, hidden_size]
-                W_m: [hidden_size, memory_size]
-
-        A and B are fixed state space matrices:
-            A: [memory_size, memory_size]?
-            B: [memory_size, 1]?
         """
 
-        # Initialize the parameters
-        e_x=self.param('e_x', self.init_lecun_uni, (1,self.input_size))
-        e_h=self.param('e_h', self.init_lecun_uni, (1,self.hidden_size))
-        e_m=self.param('e_m', self.init_zero, (1,self.memory_size))
-        W_x=self.param('W_x', self.init_xav_norm, (self.hidden_size,self.input_size))
-        W_h=self.param('W_h', self.init_xav_norm, (self.hidden_size,self.hidden_size))
-        W_m=self.param('W_m', self.init_xav_norm, (self.hidden_size,self.memory_size))
-        A, B = self.stateSpaceMatrices(self.memory_size, self.theta)
 
         # Unpack the hidden state and memory
         h, m = state
 
         # Eq (7) of the paper
         # u: [batch_size, 1]
-        u1=self.vmap_matmul(x,e_x.T)
-        u2=self.vmap_matmul(h,e_h.T)
-        u3=self.vmap_matmul(m,e_m.T)
+        u1=self.vmap_matmul(x,self.e_x.T)
+        u2=self.vmap_matmul(h,self.e_h.T)
+        u3=self.vmap_matmul(m,self.e_m.T)
         u=u1+u2+u3
 
         # Eq (4) of the paper
         # m: [batch_size, memory_size]
-        m1=self.vmap_matmul(m,A.T)
-        m2=self.vmap_matmul(u,B.T)
+        m1=self.vmap_matmul(m,self.A.T)
+        m2=self.vmap_matmul(u,self.B.T)
         m=m1+m2
 
         # Eq (6) of the paper
         # h: [batch_size, hidden_size]
-        h1=self.vmap_matmul(x,W_x.T)
-        h2=self.vmap_matmul(h,W_h.T)
-        h3=self.vmap_matmul(m,W_m.T)
+        h1=self.vmap_matmul(x,self.W_x.T)
+        h2=self.vmap_matmul(h,self.W_h.T)
+        h3=self.vmap_matmul(m,self.W_m.T)
         h=nn.tanh(h1+h2+h3)
 
         return h, m
