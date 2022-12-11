@@ -52,7 +52,6 @@ train_ds, val_ds = get_datasets()
 
 
 #---------------------- Classifier for MNIST ----------------------#
-#---------------------- Classifier for MNIST ----------------------#
 class Model(nn.Module):
     input_size: int
     output_size: int
