@@ -1,5 +1,5 @@
 # jax-lmu
-Legendre Memory Unit (LMU) implementation using Jax (work in progress!)
+Unofficial implementation of Legendre Memory Unit (LMU) using Jax (out of interest and it's a work in progress!)
 
 Original paper: [Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks](https://papers.nips.cc/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html)
 
