@@ -3,6 +3,12 @@ Legendre Memory Unit (LMU) implementation using Jax (work in progress!)
 
 Original paper: [Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks](https://papers.nips.cc/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html)
 
+Repo of the orginal paper used [Keras](https://github.com/nengo/keras-lmu);
+
+Another paper are [parallelizing LMU training](https://arxiv.org/abs/2102.11417) and its [LMU PyTorch implementation](https://github.com/hrshtv/pytorch-lmu) (which is mostly what I am basing my adaptation on).
+
+
+
 ## Environment Setup
 
 My GPU is NVIDIA GeForce RTX 3090 and CUDA version 11.5.
