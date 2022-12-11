@@ -8,6 +8,7 @@ import tensorflow_datasets as tfds
 import optax
 from flax.training import train_state
 
+
 #---------------------- Hyperparameters ----------------------#
 
 N_x = 1 # dimension of the input, a single pixel
@@ -95,25 +96,26 @@ def create_train_state(rng, learning_rate=lr):
     optimizer = optax.adam(learning_rate)
     return train_state.TrainState.create(apply_fn=model.apply, params=params, tx=optimizer)
 
+@jit
+def loss_fn(params, batch):
+    model = Model(
+                input_size  = N_x,
+                output_size = N_c,
+                hidden_size = N_h, 
+                memory_size = N_m, 
+                theta = THETA
+            )
+    logits = model.apply({'params': params}, batch['image'])
+    loss = cross_entropy_loss(logits=logits, labels=batch['label'])
+    return loss, logits
 
 @jit
 def train_step(state, batch):
-    def loss_fn(params):
-        model = Model(
-                    input_size  = N_x,
-                    output_size = N_c,
-                    hidden_size = N_h, 
-                    memory_size = N_m, 
-                    theta = THETA
-                )
-        logits = model.apply({'params': params}, batch['image'])
-        loss = cross_entropy_loss(logits=logits, labels=batch['label'])
-        return loss, logits
     grad_fn = jax.grad(loss_fn, has_aux=True)
-    grads, logits = grad_fn(state.params)
-    state = state.apply_gradients(grads=grads)
+    grads, logits = grad_fn(state.params, batch)
+    new_state = state.apply_gradients(grads=grads)
     metrics = compute_metrics(logits=logits, labels=batch['label'])
-    return state, metrics
+    return new_state, metrics # ?? For some reason it will get stuck after this and won't return anything to train_epoch()
 
 @jit
 def eval_step(params, batch):
