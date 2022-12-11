@@ -6,10 +6,6 @@ from src.jax_lmu import *
 import tensorflow_datasets as tfds 
 
 import optax
-
-import tensorflow_datasets as tfds 
-
-import optax
 from flax.training import train_state
 
 
