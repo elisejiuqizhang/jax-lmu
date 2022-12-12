@@ -80,7 +80,7 @@ def compute_metrics(*, logits, labels):
 
 #---------------------- Utility Functions for Training ----------------------#
 
-lr=1e-2
+lr=1e-3
 
 def create_train_state(rng, learning_rate=lr):
     model = Model(
@@ -98,7 +98,6 @@ def create_train_state(rng, learning_rate=lr):
 
 
 
-@jit
 def train_step(state, batch):
     def loss_fn(params):
         logits = state.apply_fn({'params': params}, batch['image'])
@@ -113,7 +112,6 @@ def train_step(state, batch):
 
     return new_state, metrics # ?? For some reason it will get stuck after this and won't return anything to train_epoch()
 
-@jit
 def eval_step(state, batch):
     logits = state.apply_fn({'params': state.params}, batch['image'])
     return compute_metrics(logits=logits, labels=batch['label'])
