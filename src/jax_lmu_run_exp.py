@@ -17,10 +17,9 @@ N_h = 212 # dimension of the hidden state
 N_m = 256 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
-# N_b = 100 # batch size
-# N_epochs = 10
-N_b = 1000
-N_epochs = 2
+N_b = 100 # batch size
+N_epochs = 10
+
 
 
 #---------------------- Load MNIST ----------------------#
