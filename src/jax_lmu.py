@@ -30,6 +30,10 @@ class RecurrentCellBase(nn.Module):
     raise NotImplementedError
 
 #---------------------- One LMU Cell ----------------------#
+# References: 
+# https://flax.readthedocs.io/en/latest/_modules/flax/linen/recurrent.html
+# https://flax.readthedocs.io/en/latest/api_reference/_autosummary/flax.linen.scan.html
+
 class LMUCell(RecurrentCellBase):
     """LMU Cell
     
@@ -89,19 +93,16 @@ class LMUCell(RecurrentCellBase):
                         kernel_init=self.init_lecun_uni,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         u_h = nn.Dense(features=1,
                         use_bias=False,
                         kernel_init=self.init_lecun_uni,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         u_m = nn.Dense(features=1,
                         use_bias=False,
                         kernel_init=self.init_zero,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         u = u_x(x) + u_h(h) + u_m(m)
 
 
@@ -118,19 +119,16 @@ class LMUCell(RecurrentCellBase):
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         h_h = nn.Dense(features=self.hidden_size,
                         use_bias=False,
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         h_m = nn.Dense(features=self.hidden_size,
                         use_bias=False,
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-
         new_h = self.activation_fn(h_x(x) + h_h(h) + h_m(m))
         return (new_h, new_m), new_h
 
@@ -177,6 +175,8 @@ class LMUCell(RecurrentCellBase):
 
 
 #---------------------- LMU Layer ----------------------#
+# Reference: https://flax.readthedocs.io/en/latest/api_reference/_autosummary/flax.linen.scan.html
+
 class LMU(nn.Module):
     """
     The LMU Layer
@@ -237,7 +237,7 @@ class Model(nn.Module):
 
         # Run the LMU layer
         # h_n: [batch_size, hidden_size]
-        (h_n,_),_= LMU(self.input_size, self.hidden_size, self.memory_size, self.theta)(init_carry, x)
+        (h_n , _),_= LMU(self.input_size, self.hidden_size, self.memory_size, self.theta)(init_carry, x)
 
         # Run the output layer
         output=nn.Dense(features=self.output_size)(h_n)
