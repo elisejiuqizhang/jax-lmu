@@ -1,8 +1,7 @@
 import sys
 sys.path.append('/usr/local/data/elisejzh/Projects/Mine/jax-lmu')
 
-# from src.jax_lmu import *
-from src.flax_scan_lmu import *
+from src.jax_lmu import *
 
 import tensorflow_datasets as tfds 
 
@@ -13,13 +12,15 @@ from flax.training import train_state
 #---------------------- Hyperparameters ----------------------#
 
 N_x = 1 # dimension of the input, a single pixel
-N_t = 784 # number of time steps (sequence length)
+N_t = 784 # number of time steps (sequence length) - here it's 28 * 28 since we are using MNIST and making it 1D
 N_h = 212 # dimension of the hidden state
 N_m = 256 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
-N_b = 100 # batch size
-N_epochs = 10
+# N_b = 100 # batch size
+# N_epochs = 10
+N_b = 1000
+N_epochs = 2
 
 
 #---------------------- Load MNIST ----------------------#
@@ -75,7 +76,7 @@ def create_train_state(rng, learning_rate=lr):
         )
 
     
-    params = model.init(rng, jnp.ones((N_b, N_t, N_x)))['params']
+    params = model.init(rng, jnp.ones((1, N_t, N_x)))['params']
     print("Model initialized.")
 
     optimizer = optax.adam(learning_rate)
@@ -97,12 +98,13 @@ def train_step(state, batch):
 
     return new_state, metrics 
 
-def eval_step(state, batch):
+def eval_step(state, batch, seq_len=N_x, input_size=N_x):
+    batch['image']=batch['image'].reshape((-1, seq_len, input_size))
     logits = state.apply_fn({'params': state.params}, batch['image'])
     return compute_metrics(logits=logits, labels=batch['label'])
 
 
-def train_epoch(state, train_ds, epoch, rng, batch_size=N_b, input_size=N_x):
+def train_epoch(state, train_ds, epoch, rng, batch_size=N_b, seq_len=N_x, input_size=N_x):
 
     train_ds_size = len(train_ds['image'])
     steps_per_epoch = train_ds_size // batch_size
