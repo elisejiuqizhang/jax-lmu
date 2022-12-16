@@ -1,7 +1,8 @@
 import sys
 sys.path.append('/usr/local/data/elisejzh/Projects/Mine/jax-lmu')
 
-from src.jax_lmu import *
+# from src.jax_lmu import *
+from src.flax_scan_lmu import *
 
 import tensorflow_datasets as tfds 
 
@@ -43,24 +44,6 @@ def get_datasets():
 train_ds, val_ds = get_datasets()
 
 
-#---------------------- Classifier for MNIST ----------------------#
-class Model(nn.Module):
-    input_size: int
-    output_size: int
-    hidden_size: int
-    memory_size: int
-    theta: int
-
-    def setup(self):
-        self.lmu = LMU(self.input_size, self.hidden_size, self.memory_size, self.theta)
-        self.classifier = nn.Dense(self.output_size)
-
-    @nn.compact
-    def __call__(self, x):
-        _, (h_n, _) = self.lmu(x) # [batch_size, hidden_size]
-        output = self.classifier(h_n)
-        return output # [batch_size, output_size]
-
 
 #---------------------- Loss & Metrics ----------------------#
 """Following the Flax example: https://flax.readthedocs.io/en/latest/getting_started.html"""
@@ -90,6 +73,8 @@ def create_train_state(rng, learning_rate=lr):
             memory_size = N_m, 
             theta = THETA
         )
+
+    
     params = model.init(rng, jnp.ones((N_b, N_t, N_x)))['params']
     print("Model initialized.")
 
@@ -110,7 +95,7 @@ def train_step(state, batch):
     logits = new_state.apply_fn({'params': new_state.params}, batch['image'])
     metrics = compute_metrics(logits=logits, labels=batch['label'])
 
-    return new_state, metrics # ?? For some reason it will get stuck after this and won't return anything to train_epoch()
+    return new_state, metrics 
 
 def eval_step(state, batch):
     logits = state.apply_fn({'params': state.params}, batch['image'])
