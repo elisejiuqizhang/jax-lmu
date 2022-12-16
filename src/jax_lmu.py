@@ -89,34 +89,19 @@ class LMUCell(RecurrentCellBase):
                         kernel_init=self.init_lecun_uni,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense, 
-            #             features=self.input_size,
-            #             use_bias=False,
-            #             kernel_init=self.init_lecun_uni,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         u_h = nn.Dense(features=1,
                         use_bias=False,
                         kernel_init=self.init_lecun_uni,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense,
-            #             features=self.hidden_size,
-            #             use_bias=False,
-            #             kernel_init=self.init_lecun_uni,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         u_m = nn.Dense(features=1,
                         use_bias=False,
                         kernel_init=self.init_zero,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense,
-            #             features=self.memory_size, 
-            #             use_bias=False,
-            #             kernel_init=self.init_zero,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         u = u_x(x) + u_h(h) + u_m(m)
 
 
@@ -133,34 +118,19 @@ class LMUCell(RecurrentCellBase):
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense,
-            #             features=self.hidden_size,
-            #             use_bias=False,
-            #             kernel_init=self.init_xav_norm,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         h_h = nn.Dense(features=self.hidden_size,
                         use_bias=False,
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense,
-            #             features=self.hidden_size,
-            #             use_bias=False,
-            #             kernel_init=self.init_xav_norm,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         h_m = nn.Dense(features=self.hidden_size,
                         use_bias=False,
                         kernel_init=self.init_xav_norm,
                         bias_init=self.init_zero,
                         param_dtype=jnp.float32)
-            # partial(nn.Dense,
-            #             features=self.hidden_size,
-            #             use_bias=False,
-            #             kernel_init=self.init_xav_norm,
-            #             bias_init=self.init_zero,
-            #             param_dtype=jnp.float32)
+
         new_h = self.activation_fn(h_x(x) + h_h(h) + h_m(m))
         return (new_h, new_m), new_h
 
@@ -220,9 +190,6 @@ class LMU(nn.Module):
             Size of the memory vector (m_t)
         theta (int) :
             The number of timesteps in the sliding window that is represented using the LTI system
-        pmnist (boolean) :
-            Uses different parameter initializers when training on psMNIST (as specified in the paper),
-            Set to false by default
     
     """
 
@@ -230,7 +197,6 @@ class LMU(nn.Module):
     hidden_size: int
     memory_size: int
     theta: int
-    pmnist: bool = False
 
     @nn.compact
     def __call__(self, carry, x):
