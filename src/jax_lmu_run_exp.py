@@ -98,7 +98,7 @@ def train_step(state, batch):
 
     return new_state, metrics 
 
-def eval_step(state, batch, seq_len=N_x, input_size=N_x):
+def eval_step(state, batch, seq_len=N_t, input_size=N_x):
     batch['image']=batch['image'].reshape((-1, seq_len, input_size))
     logits = state.apply_fn({'params': state.params}, batch['image'])
     return compute_metrics(logits=logits, labels=batch['label'])
