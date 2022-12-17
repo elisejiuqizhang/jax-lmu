@@ -18,7 +18,7 @@ class RecurrentCellBase(nn.Module):
 
   @staticmethod
   def initialize_carry(batch_dims, size, init_fn=nn.initializers.zeros):
-    """Initialize the RNN cell carry.
+    """Initialize the Recurrent cell carry.
 
     Args:
       batch_dims: a tuple providing the shape of the batch dimensions.
