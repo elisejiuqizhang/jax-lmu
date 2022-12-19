@@ -18,7 +18,7 @@ N_m = 256 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
 N_b = 200 # batch size
-N_epochs = 10
+N_epochs = 3
 
 lr=1e-4 # learning rate
 
