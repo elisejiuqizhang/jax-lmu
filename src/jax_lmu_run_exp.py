@@ -17,7 +17,7 @@ N_h = 212 # dimension of the hidden state
 N_m = 256 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
-N_b = 100 # batch size
+N_b = 200 # batch size
 N_epochs = 10
 
 
@@ -63,7 +63,7 @@ def compute_metrics(*, logits, labels):
 
 #---------------------- Utility Functions for Training ----------------------#
 
-lr=1e-3
+lr=1e-4
 
 def create_train_state(rng, learning_rate=lr):
     model = Model(
