@@ -20,7 +20,7 @@ THETA = N_t
 N_b = 200 # batch size
 N_epochs = 10
 
-
+lr=1e-4 # learning rate
 
 #---------------------- Load MNIST ----------------------#
 
@@ -62,8 +62,6 @@ def compute_metrics(*, logits, labels):
   return metrics
 
 #---------------------- Utility Functions for Training ----------------------#
-
-lr=1e-4
 
 def create_train_state(rng, learning_rate=lr):
     model = Model(
