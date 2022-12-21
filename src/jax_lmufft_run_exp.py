@@ -13,7 +13,7 @@ from flax.training import train_state
 N_x = 1 # dimension of the input, a single pixel
 N_t = 784 # number of time steps (sequence length) - here it's 28 * 28 since we are using MNIST and making it 1D
 N_h = 346 # dimension of the hidden state
-N_m = 468 # dimension of the memory
+N_m = 200 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
 N_b = 100 # batch size
