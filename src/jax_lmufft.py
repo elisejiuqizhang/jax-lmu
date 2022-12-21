@@ -64,7 +64,7 @@ class LMUFFT(nn.Module):
         # Element-wise multiplication (uses broadcasting)
         # fft_u:[batch_size, 1, seq_len+1] 
         # self.H_fft: [memory_size, seq_len+1] -> to be expanded in dimension 0
-        H_fft=self.H_fft.reshape(1, self.memory_size, self.seq_len+1)
+        H_fft=self.H_fft.reshape(1, self.memory_size, self.seq_len+1) # [1, memory_size, seq_len+1]
         # [batch_size, 1, seq_len+1] * [1, memory_size, seq_len+1]
         temp=jnp.multiply(fft_u, H_fft) # [batch_size, memory_size, seq_len+1]
 
@@ -85,7 +85,6 @@ class LMUFFT(nn.Module):
 
 
     def impulse(self):
-
         def impulse_body(n, carry:Tuple):
             """The body function to be used in the fori_loop of the impluse function above"""
             H, A_i=carry
@@ -94,18 +93,25 @@ class LMUFFT(nn.Module):
             H = H.at[:, n].set(H_n.reshape(-1))
             A_i=jnp.matmul(self.A, A_i)
             return (H, A_i)
-
         """ Returns the matrices H and the 1D Fourier transform of H (Equations 23, 26 of the paper) """
         H_init=jnp.empty((self.memory_size, self.seq_len)) # [memory_size, seq_len]
         A_i_init=jnp.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
         val_init = (H_init, A_i_init)
-        H, A_i=lax.fori_loop(0, self.seq_len, impulse_body, val_init)
-        
+        H, A_i=lax.fori_loop(0, self.seq_len, impulse_body, val_init)        
         # H=np.concatenate(H_fin, axis=-1) # [memory_size, seq_len]
         H_fft=np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
         return H, H_fft
 
-
+    # def impulse(self):
+    #     """ Returns the matrices H and the 1D Fourier transform of H (Equations 23, 26 of the paper) """
+    #     H = np.empty((self.memory_size, self.seq_len), dtype = np.float32) # [memory_size, seq_len]
+    #     A_i = np.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
+    #     for n in range(self.seq_len):
+    #         H_n = np.matmul(A_i, self.B) # [memory_size, 1]
+    #         H[:, n]=H_n.reshape(-1)
+    #         A_i = np.matmul(self.A, A_i)
+    #     H_fft = np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
+    #     return H, H_fft
 
     def stateSpaceMatrices(self, memory_size, theta):
         """ Returns the discretized state space matrices A and B """
