@@ -7,7 +7,11 @@ Repo of the orginal paper used [Keras](https://github.com/nengo/keras-lmu);
 
 Another paper is [parallelizing LMU training](https://arxiv.org/abs/2102.11417) and its [LMU PyTorch implementation](https://github.com/hrshtv/pytorch-lmu) (which is mostly what I am basing my adaptation on).
 
+## Models
 
+Original LMU and its training/evaluation are named `jax_lmu.py` and `jax_lmu_run_exp.py`; 
+
+The parallelized version of LMU and its training/evaluation are named `jax_lmufft.py` and `jax_lmufft_run_exp.py`.
 
 ## Environment Setup
 
