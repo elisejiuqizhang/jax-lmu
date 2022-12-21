@@ -17,8 +17,8 @@ N_h = 256 # dimension of the hidden state
 N_m = 256 # dimension of the memory
 N_c = 10 # number of classes 
 THETA = N_t
-N_b = 256 # batch size
-N_epochs = 5 # number of epochs
+N_b = 512 # batch size
+N_epochs = 10 # number of epochs
 
 
 lr=1e-4 # learning rate for adam optimizer
