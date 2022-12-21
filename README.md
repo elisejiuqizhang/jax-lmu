@@ -1,9 +1,7 @@
 # jax-lmu
-Unofficial implementation of Legendre Memory Unit (LMU) using Jax (out of interest and it's a work in progress!)
+Unofficial implementation of Legendre Memory Unit (LMU) using Jax (out of interest and it's a work in progress!😅)
 
-Original paper: [Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks](https://papers.nips.cc/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html)
-
-Repo of the orginal paper used [Keras](https://github.com/nengo/keras-lmu);
+Original paper: [Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks](https://papers.nips.cc/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html); Repo of the orginal paper used [Keras](https://github.com/nengo/keras-lmu);
 
 Another paper is [parallelizing LMU training](https://arxiv.org/abs/2102.11417) and its [LMU PyTorch implementation](https://github.com/hrshtv/pytorch-lmu) (which is mostly what I am basing my adaptation on).
 
