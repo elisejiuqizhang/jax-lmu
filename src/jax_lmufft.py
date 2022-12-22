@@ -40,7 +40,7 @@ class LMUFFT(nn.Module):
         A: [memory_size, memory_size]
         B: [memory_size, 1]
         """
-        self.A, self.B = self.stateSpaceMatrices(self.memory_size, self.theta)
+        self.A, self.B = self.stateSpaceMatrices()
         self.H, self.H_fft = self.impulse()
 
     @nn.compact
@@ -113,17 +113,17 @@ class LMUFFT(nn.Module):
     #     H_fft = np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
     #     return H, H_fft
 
-    def stateSpaceMatrices(self, memory_size, theta):
+    def stateSpaceMatrices(self):
         """ Returns the discretized state space matrices A and B """
-        Q = np.arange(memory_size, dtype = np.float32)
-        R = (2*Q + 1) / theta
+        Q = np.arange(self.memory_size, dtype = np.float32)
+        R = (2*Q + 1) / self.theta
         i, j = np.meshgrid(Q, Q, indexing = "ij")
 
         # Continuous
         A = R * np.where(i < j, -1, (-1.0)**(i - j + 1))
         B = R * ((-1.0)**Q)
         B = B.reshape(-1, 1)
-        C = np.ones((1, memory_size))
+        C = np.ones((1, self.memory_size))
         D = np.zeros((1,))
 
         # Convert to discrete
