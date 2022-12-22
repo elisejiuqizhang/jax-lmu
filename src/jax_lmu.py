@@ -18,7 +18,7 @@ class RecurrentCellBase(nn.Module):
 
   @staticmethod
   def initialize_carry(batch_dims, size, init_fn=nn.initializers.zeros):
-    """Initialize the Recurrent cell carry.
+    """Initialize the RNN cell carry.
 
     Args:
       batch_dims: a tuple providing the shape of the batch dimensions.
@@ -69,7 +69,7 @@ class LMUCell(RecurrentCellBase):
     activation_fn: Callable = nn.tanh
 
     def setup(self):
-        self.A, self.B = self.stateSpaceMatrices(self.memory_size, self.theta)
+        self.A, self.B = self.stateSpaceMatrices()
 
     @nn.compact
     def __call__(self, carry, x):
@@ -151,17 +151,17 @@ class LMUCell(RecurrentCellBase):
 
     
 
-    def stateSpaceMatrices(self, memory_size, theta):
+    def stateSpaceMatrices(self):
         """ Returns the discretized state space matrices A and B """
-        Q = np.arange(memory_size, dtype = np.float32)
-        R = (2*Q + 1) / theta
+        Q = np.arange(self.memory_size, dtype = np.float32)
+        R = (2*Q + 1) / self.theta
         i, j = np.meshgrid(Q, Q, indexing = "ij")
 
         # Continuous
         A = R * np.where(i < j, -1, (-1.0)**(i - j + 1))
         B = R * ((-1.0)**Q)
         B = B.reshape(-1, 1)
-        C = np.ones((1, memory_size))
+        C = np.ones((1, self.memory_size))
         D = np.zeros((1,))
 
         # Convert to discrete
