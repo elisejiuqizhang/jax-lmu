@@ -47,8 +47,11 @@ class LMUFFT(nn.Module):
     def __call__(self, x):
         """
         Parameters:
-            x: 
-                Input of size [batch_size, seq_len, input_size]
+            x: [batch_size, seq_len, input_size];
+
+        Returns:
+            h: [batch_size, seq_len, hidden_size]; The parallelized/flattened hidden states of every timestep;
+            h_n: [batch_size, hidden_size]; The hidden state of the last timestep;
         """
         batch_size, seq_len, input_size = x.shape
 
