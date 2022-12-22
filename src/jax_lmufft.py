@@ -47,7 +47,7 @@ class LMUFFT(nn.Module):
     def __call__(self, x):
         """
         Parameters:
-            x (torch.tensor): 
+            x: 
                 Input of size [batch_size, seq_len, input_size]
         """
         batch_size, seq_len, input_size = x.shape
