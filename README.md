@@ -7,7 +7,7 @@ Another paper is [parallelizing LMU training](https://arxiv.org/abs/2102.11417) 
 
 ## Models
 
-Original LMU and its training/evaluation are named `jax_lmu.py` and `jax_lmu_run_exp.py`; 
+Original LMU and its training/evaluation are named `jax_lmu.py` and `jax_lmu_run_exp.py` (can also run from the `.ipynb` file); 
 
 The parallelized version of LMU and its training/evaluation are named `jax_lmufft.py` and `jax_lmufft_run_exp.py`.
 
