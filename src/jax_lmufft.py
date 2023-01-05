@@ -40,8 +40,8 @@ class LMUFFT(nn.Module):
         A: [memory_size, memory_size]
         B: [memory_size, 1]
         """
-        self.A, self.B = self.stateSpaceMatrices()
-        self.H, self.H_fft = self.impulse()
+        self.A, self.B = self.stateSpaceMatrices() # numpy
+        self.H, self.H_fft = self.impulse() # numpy
 
     @nn.compact
     def __call__(self, x):
@@ -79,6 +79,8 @@ class LMUFFT(nn.Module):
         input_h=jnp.concatenate((x, m), axis=-1) # [batch_size, seq_len, input_size + memory_size]
         h_pre_act = nn.Dense(features=self.hidden_size,
                             use_bias=True)
+
+        # h=nn.tanh(h_pre_act(input_h)) # [batch_size, seq_len, hidden_size]
         h=nn.relu(h_pre_act(input_h)) # [batch_size, seq_len, hidden_size]
 
         h_n=h[:, -1, :] # [batch_size, hidden_size]
@@ -87,34 +89,34 @@ class LMUFFT(nn.Module):
 
 
 
-    def impulse(self):
-        def impulse_body(n, carry:Tuple):
-            """The body function to be used in the fori_loop of the impluse function above"""
-            H, A_i=carry
-            H_n=jnp.matmul(A_i, self.B) # [memory_size, 1]
-            # H.append(H_n)
-            H = H.at[:, n].set(H_n.reshape(-1))
-            A_i=jnp.matmul(self.A, A_i)
-            return (H, A_i)
-        """ Returns the matrices H and the 1D Fourier transform of H (Equations 23, 26 of the paper) """
-        H_init=jnp.empty((self.memory_size, self.seq_len)) # [memory_size, seq_len]
-        A_i_init=jnp.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
-        val_init = (H_init, A_i_init)
-        H, A_i=lax.fori_loop(0, self.seq_len, impulse_body, val_init)        
-        # H=np.concatenate(H_fin, axis=-1) # [memory_size, seq_len]
-        H_fft=np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
-        return H, H_fft
-
     # def impulse(self):
+    #     def impulse_body(n, carry:Tuple):
+    #         """The body function to be used in the fori_loop of the impluse function above"""
+    #         H, A_i=carry
+    #         H_n=jnp.matmul(A_i, self.B) # [memory_size, 1]
+    #         # H.append(H_n)
+    #         H = H.at[:, n].set(H_n.reshape(-1))
+    #         A_i=jnp.matmul(self.A, A_i)
+    #         return (H, A_i)
     #     """ Returns the matrices H and the 1D Fourier transform of H (Equations 23, 26 of the paper) """
-    #     H = np.empty((self.memory_size, self.seq_len), dtype = np.float32) # [memory_size, seq_len]
-    #     A_i = np.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
-    #     for n in range(self.seq_len):
-    #         H_n = np.matmul(A_i, self.B) # [memory_size, 1]
-    #         H[:, n]=H_n.reshape(-1)
-    #         A_i = np.matmul(self.A, A_i)
-    #     H_fft = np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
+    #     H_init=jnp.empty((self.memory_size, self.seq_len)) # [memory_size, seq_len]
+    #     A_i_init=jnp.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
+    #     val_init = (H_init, A_i_init)
+    #     H, A_i=lax.fori_loop(0, self.seq_len, impulse_body, val_init)        
+    #     # H=np.concatenate(H_fin, axis=-1) # [memory_size, seq_len]
+    #     H_fft=np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
     #     return H, H_fft
+
+    def impulse(self):
+        """ Returns the matrices H and the 1D Fourier transform of H (Equations 23, 26 of the paper) """
+        H = np.empty((self.memory_size, self.seq_len), dtype = np.float32) # [memory_size, seq_len]
+        A_i = np.eye(self.memory_size, dtype = np.float32) # [memory_size, memory_size]
+        for n in range(self.seq_len):
+            H_n = np.matmul(A_i, self.B) # [memory_size, 1]
+            H[:, n]=H_n.reshape(-1)
+            A_i = np.matmul(self.A, A_i)
+        H_fft = np.fft.rfft(H, n = 2*self.seq_len, axis = -1) # [memory_size, seq_len + 1]
+        return H, H_fft
 
     def stateSpaceMatrices(self):
         """ Returns the discretized state space matrices A and B """
