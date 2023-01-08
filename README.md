@@ -13,8 +13,6 @@ The parallelized version of LMU and its training/evaluation are named `jax_lmuff
 
 ## Environment Setup
 
-Single GPU: NVIDIA GeForce RTX 3090, CUDA version 11.5.
-
 ### Minimum Requirements
 
 Python version is 3.9.15. Required packages installed using a mixture of conda and pip:
